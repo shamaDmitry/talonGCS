@@ -1,6 +1,9 @@
 // import { useEffect, useMemo, useState } from "react";
 import { Menu, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { GcsSidebar } from "@/components/gcs/GcsSidebar";
+import { useDroneFeed } from "@/hooks/useDroneFeed";
 // import { toast } from "sonner";
 // import { GcsSidebar } from "@/components/gcs/GcsSidebar";
 // import { TacticalMap } from "@/components/gcs/TacticalMap";
@@ -8,15 +11,15 @@ import { Button } from "@/components/ui/button";
 // import { useDroneFeed } from "@/hooks/useDroneFeed";
 
 const Index = () => {
-  // const { friendlies, enemies, attack } = useDroneFeed();
+  const { friendlies, enemies } = useDroneFeed();
 
-  // const [selectedFriendlyId, setSelectedFriendlyId] = useState<string | null>(
-  //   null,
-  // );
+  const [selectedFriendlyId, setSelectedFriendlyId] = useState<string | null>(
+    null,
+  );
 
-  // const [selectedEnemyId, setSelectedEnemyId] = useState<string | null>(null);
-  // const [collapsed, setCollapsed] = useState(false);
-  // const [mobileOpen, setMobileOpen] = useState(false);
+  const [selectedEnemyId, setSelectedEnemyId] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Auto-select first drone
   // useEffect(() => {
@@ -35,11 +38,15 @@ const Index = () => {
   //   }
   // }, [friendlies, selectedFriendlyId]);
 
-  // useEffect(() => {
-  //   if (selectedEnemyId && !enemies.find((e) => e.id === selectedEnemyId)) {
-  //     setSelectedEnemyId(null);
-  //   }
-  // }, [enemies, selectedEnemyId]);
+  useEffect(() => {
+    if (selectedEnemyId && !enemies.find((e) => e.id === selectedEnemyId)) {
+      const timerId = setTimeout(() => {
+        setSelectedEnemyId(null);
+      }, 0);
+
+      return () => clearTimeout(timerId);
+    }
+  }, [enemies, selectedEnemyId]);
 
   // const selectedFriendly = useMemo(
   //   () => friendlies.find((d) => d.id === selectedFriendlyId) ?? null,
@@ -60,7 +67,7 @@ const Index = () => {
 
   return (
     <div className="h-screen w-full flex bg-background text-foreground overflow-hidden">
-      {/* <GcsSidebar
+      <GcsSidebar
         drones={friendlies}
         selectedId={selectedFriendlyId}
         onSelect={(id) => {
@@ -71,7 +78,7 @@ const Index = () => {
         onToggleCollapsed={() => setCollapsed((v) => !v)}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
-      /> */}
+      />
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-14 border-b border-border bg-surface/60 backdrop-blur flex items-center px-3 gap-2 shrink-0">
@@ -79,7 +86,7 @@ const Index = () => {
             variant="ghost"
             size="icon"
             className="md:hidden h-9 w-9"
-            // onClick={() => setMobileOpen(true)}
+            onClick={() => setMobileOpen(true)}
           >
             <Menu className="w-5 h-5" />
           </Button>
