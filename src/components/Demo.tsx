@@ -29,16 +29,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-// import { Field, FieldGroup } from "@/components/ui/field";
-
-/*
+import { Field, FieldGroup } from "@/components/ui/field";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
 } from "@/components/ui/input-group";
-*/
 import {
   Item,
   ItemActions,
@@ -47,11 +44,11 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { Slider } from "@/components/ui/slider";
-// import { Switch } from "@/components/ui/switch";
-// import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   CopyIcon,
   CircleAlertIcon,
@@ -215,7 +212,7 @@ export function Demo() {
                 className="flex-1"
                 aria-label="Slider"
               />
-              {/* <FieldGroup>
+              <FieldGroup>
                 <Field>
                   <InputGroup>
                     <InputGroupInput placeholder="Name" />
@@ -229,20 +226,20 @@ export function Demo() {
                 <Field className="flex-1">
                   <Textarea placeholder="Message" className="resize-none" />
                 </Field>
-              </FieldGroup> */}
+              </FieldGroup>
               <div className="flex items-center gap-2">
                 <div className="flex gap-2">
                   <Badge>Badge</Badge>
                   <Badge variant="secondary">Secondary</Badge>
                   <Badge variant="outline">Outline</Badge>
                 </div>
-                {/* <RadioGroup
+                <RadioGroup
                   defaultValue="apple"
                   className="ml-auto flex w-fit gap-3"
                 >
                   <RadioGroupItem value="apple" />
                   <RadioGroupItem value="banana" />
-                </RadioGroup> */}
+                </RadioGroup>
                 <div className="flex gap-3">
                   <Checkbox defaultChecked />
                   <Checkbox />
@@ -307,7 +304,7 @@ export function Demo() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </ButtonGroup>
-                {/* <Switch defaultChecked className="ml-auto" /> */}
+                <Switch defaultChecked className="ml-auto" />
               </div>
             </CardContent>
           </Card>
