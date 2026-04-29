@@ -1,17 +1,14 @@
-// import { useEffect, useMemo, useState } from "react";
 import { Menu, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { GcsSidebar } from "@/components/gcs/GcsSidebar";
 import { useDroneFeed } from "@/hooks/useDroneFeed";
-// import { toast } from "sonner";
-// import { GcsSidebar } from "@/components/gcs/GcsSidebar";
-// import { TacticalMap } from "@/components/gcs/TacticalMap";
-// import { DroneDetails } from "@/components/gcs/DroneDetails";
-// import { useDroneFeed } from "@/hooks/useDroneFeed";
+import { DroneDetails } from "@/components/gcs/DroneDetails";
+import { toast } from "sonner";
+import { TacticalMap } from "@/components/gcs/TacticalMap";
 
 const Index = () => {
-  const { friendlies, enemies } = useDroneFeed();
+  const { friendlies, enemies, attack } = useDroneFeed();
 
   const [selectedFriendlyId, setSelectedFriendlyId] = useState<string | null>(
     null,
@@ -22,11 +19,15 @@ const Index = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Auto-select first drone
-  // useEffect(() => {
-  //   if (!selectedFriendlyId && friendlies.length > 0) {
-  //     setSelectedFriendlyId(friendlies[0].id);
-  //   }
-  // }, [friendlies, selectedFriendlyId]);
+  useEffect(() => {
+    if (!selectedFriendlyId && friendlies.length > 0) {
+      const timerId = setTimeout(() => {
+        setSelectedFriendlyId(friendlies[0].id);
+      }, 0);
+
+      return () => clearTimeout(timerId);
+    }
+  }, [friendlies, selectedFriendlyId]);
 
   // Drop selection if drone removed
   // useEffect(() => {
@@ -39,7 +40,10 @@ const Index = () => {
   // }, [friendlies, selectedFriendlyId]);
 
   useEffect(() => {
-    if (selectedEnemyId && !enemies.find((e) => e.id === selectedEnemyId)) {
+    if (
+      selectedEnemyId &&
+      !enemies.find((enemy) => enemy.id === selectedEnemyId)
+    ) {
       const timerId = setTimeout(() => {
         setSelectedEnemyId(null);
       }, 0);
@@ -48,22 +52,25 @@ const Index = () => {
     }
   }, [enemies, selectedEnemyId]);
 
-  // const selectedFriendly = useMemo(
-  //   () => friendlies.find((d) => d.id === selectedFriendlyId) ?? null,
-  //   [friendlies, selectedFriendlyId],
-  // );
-  // const selectedEnemy = useMemo(
-  //   () => enemies.find((e) => e.id === selectedEnemyId) ?? null,
-  //   [enemies, selectedEnemyId],
-  // );
+  const selectedFriendly = useMemo(
+    () => friendlies.find((drone) => drone.id === selectedFriendlyId) ?? null,
+    [friendlies, selectedFriendlyId],
+  );
 
-  // function handleAttack() {
-  //   if (!selectedFriendly || !selectedEnemy) return;
-  //   attack(selectedFriendly.id, selectedEnemy.id);
-  //   toast.success(`${selectedFriendly.callsign} engaging ${selectedEnemy.id}`, {
-  //     description: "Strike vector locked. Tracking target.",
-  //   });
-  // }
+  const selectedEnemy = useMemo(
+    () => enemies.find((enemy) => enemy.id === selectedEnemyId) ?? null,
+    [enemies, selectedEnemyId],
+  );
+
+  const handleAttack = () => {
+    if (!selectedFriendly || !selectedEnemy) return;
+
+    attack(selectedFriendly.id, selectedEnemy.id);
+
+    toast.success(`${selectedFriendly.callsign} engaging ${selectedEnemy.id}`, {
+      description: "Strike vector locked. Tracking target.",
+    });
+  };
 
   return (
     <div className="h-screen w-full flex bg-background text-foreground overflow-hidden">
@@ -75,7 +82,9 @@ const Index = () => {
           setMobileOpen(false);
         }}
         collapsed={collapsed}
-        onToggleCollapsed={() => setCollapsed((v) => !v)}
+        onToggleCollapsed={() =>
+          setCollapsed((previousState) => !previousState)
+        }
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
@@ -101,18 +110,11 @@ const Index = () => {
 
           <div className="ml-auto hidden sm:flex items-center gap-3 font-mono text-xs text-muted-foreground">
             <span>
-              FR{" "}
-              <span className="text-success">
-                11 {/* {friendlies.length} */}
-              </span>
+              FR <span className="text-success">{friendlies.length}</span>
             </span>
 
             <span>
-              HST{" "}
-              <span className="text-hostile">
-                22
-                {/* {enemies.length} */}
-              </span>
+              HST <span className="text-hostile">{enemies.length}</span>
             </span>
 
             <span className="hidden md:inline">SECTOR · 50.45N 30.52E</span>
@@ -120,25 +122,23 @@ const Index = () => {
         </header>
 
         <main className="flex-1 grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] min-h-0">
-          <div className="relative min-h-[40vh] lg:min-h-0 border-b lg:border-b-0 lg:border-r border-border">
-            Map
-            {/* <TacticalMap
+          <div className="relative min-h-[60vh] lg:min-h-0 border-b lg:border-b-0 lg:border-r border-border">
+            <TacticalMap
               friendlies={friendlies}
               enemies={enemies}
               selectedFriendlyId={selectedFriendlyId}
               selectedEnemyId={selectedEnemyId}
               onSelectFriendly={setSelectedFriendlyId}
               onSelectEnemy={setSelectedEnemyId}
-            /> */}
+            />
           </div>
 
           <aside className="bg-surface/30 min-h-0 overflow-hidden">
-            DroneDetails
-            {/* <DroneDetails
+            <DroneDetails
               drone={selectedFriendly}
               enemy={selectedEnemy}
               onAttack={handleAttack}
-            /> */}
+            />
           </aside>
         </main>
       </div>

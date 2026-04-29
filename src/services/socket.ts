@@ -7,7 +7,7 @@ import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
 
 type Listener<T> = (data: T) => void;
 
-const BASE: [number, number] = [50.4501, 30.5234]; // Kyiv center
+const BASE_COORDINATES: [number, number] = [50.4501, 30.5234]; // Kyiv center
 
 const CALLSIGNS = [
   "Hawk",
@@ -26,176 +26,176 @@ const CALLSIGNS = [
 
 const PAYLOADS = ["FPV-1.5kg", "Recon", "FPV-3kg", "Relay"];
 
-function rand(min: number, max: number) {
-  return Math.random() * (max - min) + min;
+function getRandomNumber(minimum: number, maximum: number) {
+  return Math.random() * (maximum - minimum) + minimum;
 }
 
-function jitter(base: number, amt: number) {
-  return base + (Math.random() - 0.5) * amt;
+function jitterCoordinate(baseValue: number, amount: number) {
+  return baseValue + (Math.random() - 0.5) * amount;
 }
 
-function makeFriendly(i: number): FriendlyDrone {
+function makeFriendlyDrone(index: number): FriendlyDrone {
   return {
-    id: `FR-${String(i + 1).padStart(2, "0")}`,
-    callsign: `${CALLSIGNS[i % CALLSIGNS.length]}-${i + 1}`,
-    status: i % 7 === 0 ? "idle" : "active",
-    lat: jitter(BASE[0], 0.06),
-    lng: jitter(BASE[1], 0.08),
-    alt: rand(80, 320),
-    speed: rand(8, 28),
-    battery: rand(35, 100),
-    flightTime: Math.floor(rand(60, 1800)),
-    azimuth: rand(0, 360),
-    signal: rand(60, 100),
-    payload: PAYLOADS[i % PAYLOADS.length],
+    id: `FR-${String(index + 1).padStart(2, "0")}`,
+    callsign: `${CALLSIGNS[index % CALLSIGNS.length]}-${index + 1}`,
+    status: index % 7 === 0 ? "idle" : "active",
+    latitude: jitterCoordinate(BASE_COORDINATES[0], 0.06),
+    longitude: jitterCoordinate(BASE_COORDINATES[1], 0.08),
+    altitude: getRandomNumber(80, 320),
+    speed: getRandomNumber(8, 28),
+    battery: getRandomNumber(35, 100),
+    flightTime: Math.floor(getRandomNumber(60, 1800)),
+    azimuth: getRandomNumber(0, 360),
+    signal: getRandomNumber(60, 100),
+    payload: PAYLOADS[index % PAYLOADS.length],
     targetId: null,
   };
 }
 
-function makeEnemy(i: number): EnemyDrone {
+function makeEnemyDrone(index: number): EnemyDrone {
   return {
-    id: `TRK-${i + 1}`,
-    lat: jitter(BASE[0], 0.08),
-    lng: jitter(BASE[1], 0.1),
-    direction: rand(0, 360),
+    id: `TRK-${index + 1}`,
+    latitude: jitterCoordinate(BASE_COORDINATES[0], 0.08),
+    longitude: jitterCoordinate(BASE_COORDINATES[1], 0.1),
+    direction: getRandomNumber(0, 360),
     status: "active",
   };
 }
 
 class GcsSocket {
-  private friendlies: FriendlyDrone[] = Array.from({ length: 12 }, (_, i) =>
-    makeFriendly(i),
+  private friendlies: FriendlyDrone[] = Array.from({ length: 12 }, (_, index) =>
+    makeFriendlyDrone(index),
   );
-  private enemies: EnemyDrone[] = Array.from({ length: 8 }, (_, i) =>
-    makeEnemy(i),
+  private enemies: EnemyDrone[] = Array.from({ length: 8 }, (_, index) =>
+    makeEnemyDrone(index),
   );
   private friendlyListeners = new Set<Listener<FriendlyDrone[]>>();
   private enemyListeners = new Set<Listener<EnemyDrone[]>>();
-  private interval: ReturnType<typeof setInterval> | null = null;
-  private engagements = new Map<string, { targetId: string; ttl: number }>();
+  private tickInterval: ReturnType<typeof setInterval> | null = null;
+  private engagements = new Map<string, { targetId: string; timeToLive: number }>();
 
   connect() {
-    if (this.interval) return;
+    if (this.tickInterval) return;
 
-    this.interval = setInterval(() => this.tick(), 1000);
+    this.tickInterval = setInterval(() => this.processTick(), 1000);
 
     // emit immediately
     queueMicrotask(() => {
-      this.emitFriendly();
-      this.emitEnemy();
+      this.emitFriendlyDrones();
+      this.emitEnemyDrones();
     });
   }
 
   disconnect() {
-    if (this.interval) clearInterval(this.interval);
-    this.interval = null;
+    if (this.tickInterval) clearInterval(this.tickInterval);
+    this.tickInterval = null;
   }
 
-  onFriendly(cb: Listener<FriendlyDrone[]>) {
-    this.friendlyListeners.add(cb);
-    cb(this.snapshotFriendly());
-    return () => this.friendlyListeners.delete(cb);
+  onFriendly(callback: Listener<FriendlyDrone[]>) {
+    this.friendlyListeners.add(callback);
+    callback(this.getFriendlySnapshot());
+    return () => this.friendlyListeners.delete(callback);
   }
 
-  onEnemy(cb: Listener<EnemyDrone[]>) {
-    this.enemyListeners.add(cb);
-    cb(this.snapshotEnemy());
-    return () => this.enemyListeners.delete(cb);
+  onEnemy(callback: Listener<EnemyDrone[]>) {
+    this.enemyListeners.add(callback);
+    callback(this.getEnemySnapshot());
+    return () => this.enemyListeners.delete(callback);
   }
 
   /** User-issued attack command */
   attack(friendlyId: string, enemyId: string) {
-    const f = this.friendlies.find((d) => d.id === friendlyId);
-    const e = this.enemies.find((d) => d.id === enemyId);
-    if (!f || !e || f.status === "lost" || f.status === "removed") return;
-    f.status = "engaging";
-    f.targetId = enemyId;
-    this.engagements.set(friendlyId, { targetId: enemyId, ttl: 6 });
-    this.emitFriendly();
+    const friendly = this.friendlies.find((drone) => drone.id === friendlyId);
+    const enemy = this.enemies.find((drone) => drone.id === enemyId);
+    if (!friendly || !enemy || friendly.status === "lost" || friendly.status === "removed") return;
+    friendly.status = "engaging";
+    friendly.targetId = enemyId;
+    this.engagements.set(friendlyId, { targetId: enemyId, timeToLive: 6 });
+    this.emitFriendlyDrones();
   }
 
-  private snapshotFriendly() {
-    return this.friendlies.map((d) => ({ ...d }));
+  private getFriendlySnapshot() {
+    return this.friendlies.map((drone) => ({ ...drone }));
   }
-  private snapshotEnemy() {
-    return this.enemies.map((d) => ({ ...d }));
-  }
-
-  private emitFriendly() {
-    const snap = this.snapshotFriendly();
-    this.friendlyListeners.forEach((cb) => cb(snap));
-  }
-  private emitEnemy() {
-    const snap = this.snapshotEnemy();
-    this.enemyListeners.forEach((cb) => cb(snap));
+  private getEnemySnapshot() {
+    return this.enemies.map((drone) => ({ ...drone }));
   }
 
-  private tick() {
+  private emitFriendlyDrones() {
+    const snapshot = this.getFriendlySnapshot();
+    this.friendlyListeners.forEach((callback) => callback(snapshot));
+  }
+  private emitEnemyDrones() {
+    const snapshot = this.getEnemySnapshot();
+    this.enemyListeners.forEach((callback) => callback(snapshot));
+  }
+
+  private processTick() {
     // Move friendlies
-    this.friendlies.forEach((d) => {
-      if (d.status === "lost" || d.status === "removed") return;
-      const heading = (d.azimuth * Math.PI) / 180;
-      const dist = (d.speed / 111000) * 0.8;
-      d.lat += Math.cos(heading) * dist;
-      d.lng += Math.sin(heading) * dist;
-      d.azimuth = (d.azimuth + rand(-6, 6) + 360) % 360;
-      d.alt = Math.max(60, Math.min(400, d.alt + rand(-4, 4)));
-      d.speed = Math.max(5, Math.min(32, d.speed + rand(-1, 1)));
-      if (d.status === "active" || d.status === "engaging") {
-        d.battery = Math.max(0, d.battery - rand(0.05, 0.2));
-        d.flightTime += 1;
+    this.friendlies.forEach((drone) => {
+      if (drone.status === "lost" || drone.status === "removed") return;
+      const heading = (drone.azimuth * Math.PI) / 180;
+      const distance = (drone.speed / 111000) * 0.8;
+      drone.latitude += Math.cos(heading) * distance;
+      drone.longitude += Math.sin(heading) * distance;
+      drone.azimuth = (drone.azimuth + getRandomNumber(-6, 6) + 360) % 360;
+      drone.altitude = Math.max(60, Math.min(400, drone.altitude + getRandomNumber(-4, 4)));
+      drone.speed = Math.max(5, Math.min(32, drone.speed + getRandomNumber(-1, 1)));
+      if (drone.status === "active" || drone.status === "engaging") {
+        drone.battery = Math.max(0, drone.battery - getRandomNumber(0.05, 0.2));
+        drone.flightTime += 1;
       }
-      d.signal = Math.max(40, Math.min(100, d.signal + rand(-3, 3)));
+      drone.signal = Math.max(40, Math.min(100, drone.signal + getRandomNumber(-3, 3)));
     });
 
     // Move enemies
-    this.enemies.forEach((e) => {
-      if (e.status !== "active") return;
-      const heading = (e.direction * Math.PI) / 180;
-      const dist = 0.00012;
-      e.lat += Math.cos(heading) * dist;
-      e.lng += Math.sin(heading) * dist;
-      e.direction = (e.direction + rand(-4, 4) + 360) % 360;
+    this.enemies.forEach((enemy) => {
+      if (enemy.status !== "active") return;
+      const heading = (enemy.direction * Math.PI) / 180;
+      const distance = 0.00012;
+      enemy.latitude += Math.cos(heading) * distance;
+      enemy.longitude += Math.sin(heading) * distance;
+      enemy.direction = (enemy.direction + getRandomNumber(-4, 4) + 360) % 360;
     });
 
     // Process engagements
-    for (const [fid, eng] of this.engagements) {
-      eng.ttl -= 1;
-      const f = this.friendlies.find((d) => d.id === fid);
-      const e = this.enemies.find((d) => d.id === eng.targetId);
-      if (!f || !e) {
-        this.engagements.delete(fid);
+    for (const [friendlyId, engagement] of this.engagements) {
+      engagement.timeToLive -= 1;
+      const friendly = this.friendlies.find((drone) => drone.id === friendlyId);
+      const enemy = this.enemies.find((drone) => drone.id === engagement.targetId);
+      if (!friendly || !enemy) {
+        this.engagements.delete(friendlyId);
         continue;
       }
       // home toward target
-      const dx = e.lng - f.lng;
-      const dy = e.lat - f.lat;
-      const targetAz = ((Math.atan2(dx, dy) * 180) / Math.PI + 360) % 360;
-      f.azimuth = targetAz;
-      f.speed = Math.min(32, f.speed + 1.5);
-      const closeDist = Math.hypot(dx, dy);
-      f.lat += dy * 0.18;
-      f.lng += dx * 0.18;
+      const deltaLongitude = enemy.longitude - friendly.longitude;
+      const deltaLatitude = enemy.latitude - friendly.latitude;
+      const targetAzimuth = ((Math.atan2(deltaLongitude, deltaLatitude) * 180) / Math.PI + 360) % 360;
+      friendly.azimuth = targetAzimuth;
+      friendly.speed = Math.min(32, friendly.speed + 1.5);
+      const closeDistance = Math.hypot(deltaLongitude, deltaLatitude);
+      friendly.latitude += deltaLatitude * 0.18;
+      friendly.longitude += deltaLongitude * 0.18;
 
-      if (eng.ttl <= 0 || closeDist < 0.0008) {
+      if (engagement.timeToLive <= 0 || closeDistance < 0.0008) {
         // BOOM
-        e.status = "removed";
-        f.status = "removed";
-        this.engagements.delete(fid);
+        enemy.status = "removed";
+        friendly.status = "removed";
+        this.engagements.delete(friendlyId);
       }
     }
 
     // Cull removed after a beat
-    this.friendlies = this.friendlies.filter((d) => d.status !== "removed");
-    this.enemies = this.enemies.filter((d) => d.status !== "removed");
+    this.friendlies = this.friendlies.filter((drone) => drone.status !== "removed");
+    this.enemies = this.enemies.filter((enemy) => enemy.status !== "removed");
 
     // Occasionally spawn a new enemy contact
     if (Math.random() < 0.05 && this.enemies.length < 14) {
-      this.enemies.push(makeEnemy(Math.floor(Math.random() * 1000)));
+      this.enemies.push(makeEnemyDrone(Math.floor(Math.random() * 1000)));
     }
 
-    this.emitFriendly();
-    this.emitEnemy();
+    this.emitFriendlyDrones();
+    this.emitEnemyDrones();
   }
 }
 

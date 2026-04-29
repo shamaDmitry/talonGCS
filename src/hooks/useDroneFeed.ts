@@ -9,12 +9,12 @@ export function useDroneFeed() {
   useEffect(() => {
     gcsSocket.connect();
 
-    const offF = gcsSocket.onFriendly(setFriendlies);
-    const offE = gcsSocket.onEnemy(setEnemies);
+    const unsubscribeFriendlies = gcsSocket.onFriendly(setFriendlies);
+    const unsubscribeEnemies = gcsSocket.onEnemy(setEnemies);
 
     return () => {
-      offF();
-      offE();
+      unsubscribeFriendlies();
+      unsubscribeEnemies();
     };
   }, []);
 

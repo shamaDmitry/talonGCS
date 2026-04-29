@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, Radar, Search, X } from "lucide-react";
 import type { FriendlyDrone } from "@/types/drone";
 import { DroneListItem } from "@/components/gcs/DroneListItem";
 
-interface SidebarProps {
+interface GcsSidebarProps {
   drones: FriendlyDrone[];
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -25,17 +25,17 @@ export function GcsSidebar({
   onToggleCollapsed,
   mobileOpen,
   onCloseMobile,
-}: SidebarProps) {
-  const [term, setTerm] = useState("");
+}: GcsSidebarProps) {
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const filtered = drones.filter((drone) => {
+  const filteredDrones = drones.filter((drone) => {
     return (
-      drone.callsign.toLowerCase().includes(term.toLowerCase()) ||
-      drone.id.toLowerCase().includes(term.toLowerCase())
+      drone.callsign.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      drone.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
-  const active = drones.filter((drone) => {
+  const activeDronesCount = drones.filter((drone) => {
     return drone.status === "active" || drone.status === "engaging";
   }).length;
 
@@ -43,7 +43,7 @@ export function GcsSidebar({
     <>
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-background/70 backdrop-blur-sm md:hidden transition-opacity",
+          "fixed inset-0 z-4000 bg-background/70 backdrop-blur-sm md:hidden transition-opacity",
           mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={onCloseMobile}
@@ -51,7 +51,7 @@ export function GcsSidebar({
 
       <aside
         className={cn(
-          "z-50 bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
+          "z-5000 bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
           // mobile
           "fixed inset-y-0 left-0 w-72 md:static md:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
@@ -105,7 +105,7 @@ export function GcsSidebar({
               <div className="hud-label">Active</div>
 
               <div className="hud-value text-lg leading-none mt-1 text-success">
-                {active}
+                {activeDronesCount}
               </div>
             </div>
           </div>
@@ -118,8 +118,8 @@ export function GcsSidebar({
 
               <Input
                 type="search"
-                value={term}
-                onChange={(e) => setTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 placeholder="Search callsign…"
                 className="h-8 pl-8 bg-surface border-border font-mono text-xs"
               />
@@ -133,7 +133,7 @@ export function GcsSidebar({
               "px-1": collapsed,
             })}
           >
-            {filtered.length === 0 && (
+            {filteredDrones.length === 0 && (
               <div className="text-center text-sm text-muted-foreground mt-4">
                 No drones found.
               </div>
@@ -160,7 +160,7 @@ export function GcsSidebar({
                     </Button>
                   );
                 })
-              : filtered.map((drone) => {
+              : filteredDrones.map((drone) => {
                   return (
                     <DroneListItem
                       key={drone.id}

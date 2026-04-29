@@ -4,9 +4,9 @@ export interface FriendlyDrone {
   id: string;
   callsign: string;
   status: DroneStatus;
-  lat: number;
-  lng: number;
-  alt: number; // meters
+  latitude: number;
+  longitude: number;
+  altitude: number; // meters
   speed: number; // m/s
   battery: number; // %
   flightTime: number; // seconds
@@ -18,15 +18,15 @@ export interface FriendlyDrone {
 
 export interface EnemyDrone {
   id: string;
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
   direction: number;
   status: "active" | "lost" | "removed";
 }
 
 export interface TelemetrySample {
-  t: number;
-  alt: number;
+  timestamp: number;
+  altitude: number;
   speed: number;
   battery: number;
 }

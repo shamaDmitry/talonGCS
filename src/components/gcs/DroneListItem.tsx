@@ -92,7 +92,7 @@ export function DroneListItem({
               <span className="tabular-nums">{drone.battery.toFixed(0)}%</span>
             </span>
 
-            <span className="tabular-nums">{drone.alt.toFixed(0)}m</span>
+            <span className="tabular-nums">{drone.altitude.toFixed(0)}m</span>
 
             <span className="tabular-nums">{drone.speed.toFixed(0)}m/s</span>
 
