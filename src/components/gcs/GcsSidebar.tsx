@@ -63,7 +63,7 @@ export function GcsSidebar({
         <div className="h-14 flex items-center justify-between px-3 border-b border-sidebar-border shrink-0">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="size-7 rounded-sm bg-linear-to-br from-primary to-secondary grid place-items-center">
+              <div className="size-7 rounded-sm bg-linear-to-tl from-primary to-secondary grid place-items-center">
                 <Radar className="w-4 h-4 text-primary-foreground" />
               </div>
 

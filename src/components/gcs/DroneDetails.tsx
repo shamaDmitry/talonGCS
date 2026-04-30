@@ -4,6 +4,7 @@ import { Crosshair, Plane, Radio, Target, Zap } from "lucide-react";
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
 import { Gauge } from "@/components/gcs/Gauge";
 import { TelemetryChart } from "@/components/gcs/TelemetryChart";
+import { LinearGauge, RadialGauge } from "./gauges";
 
 interface Props {
   drone: FriendlyDrone | null;
@@ -102,18 +103,38 @@ export function DroneDetails({ drone, enemy, onAttack }: Props) {
       </div>
 
       <div className="grid grid-cols-3 gap-2 p-3">
-        <Gauge label="Altitude" value={drone.altitude} unit="M" maximum={400} />
+        <RadialGauge
+          label="Altitude"
+          value={drone.altitude}
+          unit="M"
+          maximum={400}
+        />
 
-        <Gauge label="Speed" value={drone.speed} unit="M/S" maximum={32} />
+        {/* <Gauge label="Altitude" value={drone.altitude} unit="M" maximum={400} /> */}
 
-        <Gauge
+        {/* <Gauge label="Speed" value={drone.speed} unit="M/S" maximum={32} /> */}
+        <RadialGauge
+          label="Speed"
+          value={drone.speed}
+          unit="M/S"
+          maximum={32}
+        />
+
+        <RadialGauge
+          label="Battery"
+          value={drone.battery}
+          unit="%"
+          maximum={100}
+        />
+
+        {/* <Gauge
           label="Battery"
           value={drone.battery}
           unit="%"
           maximum={100}
           warningThreshold={20}
           inverted
-        />
+        /> */}
       </div>
 
       <div className="px-3 grid grid-cols-2 gap-2">

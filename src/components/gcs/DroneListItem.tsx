@@ -78,7 +78,7 @@ export function DroneListItem({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
-            <div className="font-mono text-xs font-semibold tracking-wide truncate">
+            <div className="text-muted-foreground font-mono text-xs font-semibold tracking-wide truncate">
               {drone.callsign}
             </div>
 

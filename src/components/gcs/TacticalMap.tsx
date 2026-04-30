@@ -9,6 +9,7 @@ import {
 import L from "leaflet";
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
 import "leaflet/dist/leaflet.css";
+import { cn } from "@/lib/utils";
 
 interface TacticalMapProps {
   friendlies: FriendlyDrone[];
@@ -20,16 +21,22 @@ interface TacticalMapProps {
 }
 
 function friendlyIcon(drone: FriendlyDrone, selected: boolean) {
-  const colorClass = selected ? "text-primary" : "text-friendly";
-
   return L.divIcon({
     className: "",
     iconSize: [28, 28],
     iconAnchor: [14, 14],
+
     html: `
-      <div class="relative w-7 h-7">
-        <div class="absolute inset-0 flex items-center justify-center" style="transform: rotate(${drone.azimuth}deg)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="${colorClass}">
+      <div class="relative w-7 h-7 ">
+        <div class="${cn("absolute inset-0 flex items-center justify-center", {
+          "scale-125": selected,
+        })}" style="transform: rotate(${drone.azimuth}deg)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="${cn(
+            "text-success",
+            {
+              "text-info": selected,
+            },
+          )}">
             <path d="M12 2 L4 22 L12 17 L20 22 Z" fill="currentColor" />
           </svg>
         </div>
@@ -180,14 +187,14 @@ export function TacticalMap({
       </div>
 
       {selectedEnemy && (
-        <div className="absolute top-3 right-3 z-400 panel px-3 py-2 max-w-55">
+        <div className="absolute bottom-3 left-3 z-400 panel px-3 py-2 max-w-55">
           <div className="hud-label text-hostile">TARGET LOCK</div>
 
           <div className="font-mono text-sm font-bold mt-0.5">
             {selectedEnemy.id}
           </div>
 
-          <div className="font-mono text-[10px] text-muted-foreground mt-1 space-y-0.5">
+          <div className="font-mono text-xs text-muted-foreground mt-1 space-y-0.5">
             <div>LAT {selectedEnemy.latitude.toFixed(5)}</div>
 
             <div>LNG {selectedEnemy.longitude.toFixed(5)}</div>
