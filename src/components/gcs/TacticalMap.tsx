@@ -5,11 +5,14 @@ import {
   Marker,
   Polyline,
   useMap,
+  Popup,
 } from "react-leaflet";
-import L from "leaflet";
+
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
 import "leaflet/dist/leaflet.css";
-import { cn } from "@/lib/utils";
+import EnemyTarget from "@/components/gcs/map/EnemyTarget";
+import FriendlyDron from "@/components/gcs/map/FriendlyDron";
+import DronePopup from "@/components/gcs/map/DronePopup";
 
 interface TacticalMapProps {
   friendlies: FriendlyDrone[];
@@ -18,53 +21,6 @@ interface TacticalMapProps {
   selectedEnemyId: string | null;
   onSelectFriendly: (id: string) => void;
   onSelectEnemy: (id: string) => void;
-}
-
-function friendlyIcon(drone: FriendlyDrone, selected: boolean) {
-  return L.divIcon({
-    className: "",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-
-    html: `
-      <div class="relative w-7 h-7 ">
-        <div class="${cn("absolute inset-0 flex items-center justify-center", {
-          "scale-125": selected,
-        })}" style="transform: rotate(${drone.azimuth}deg)">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="${cn(
-            "text-success",
-            {
-              "text-info": selected,
-            },
-          )}">
-            <path d="M12 2 L4 22 L12 17 L20 22 Z" fill="currentColor" />
-          </svg>
-        </div>
-      </div>
-    `,
-  });
-}
-
-function enemyIcon(drone: EnemyDrone, selected: boolean) {
-  const color = "var(--hostile)";
-  const ring = selected
-    ? `box-shadow: 0 0 0 2px var(--primary), 0 0 14px var(--primary);`
-    : "";
-  return L.divIcon({
-    className: "",
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    html: `
-      <div style="width:30px;height:30px;position:relative;${ring} border-radius:50%;">
-        <div style="position:absolute;inset:4px;border:1.5px solid ${color};border-radius:50%;"></div>
-        <div style="position:absolute;inset:9px;background:${color};border-radius:50%;box-shadow:0 0 10px ${color};"></div>
-        <div style="position:absolute;inset:0;border:1px dashed ${color};border-radius:50%;animation:ping-soft 2s infinite;"></div>
-        <svg style="position:absolute;left:50%;top:-4px;transform:translateX(-50%) rotate(${drone.direction}deg);transform-origin:50% 19px;" width="10" height="10" viewBox="0 0 10 10">
-          <path d="M5 0 L9 8 L5 6 L1 8 Z" fill="${color}"/>
-        </svg>
-      </div>
-    `,
-  });
 }
 
 function FlyToSelection({
@@ -84,9 +40,24 @@ function FlyToSelection({
     if (!pos) return;
 
     map.flyTo(pos, Math.max(map.getZoom(), 13), { duration: 0.8 });
-    // Only re-run when the SELECTION changes, not on every coord tick
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+  return null;
+}
+
+function PopupManager({ friendlies }: { friendlies: FriendlyDrone[] }) {
+  const map = useMap();
+
+  const engagingCount = friendlies.filter(
+    (d) => d.status === "engaging",
+  ).length;
+
+  useEffect(() => {
+    if (engagingCount > 0) {
+      map.closePopup();
+    }
+  }, [engagingCount, map]);
+
   return null;
 }
 
@@ -146,21 +117,28 @@ export function TacticalMap({
               : null
           }
         />
+        <PopupManager friendlies={friendlies} />
 
-        {friendlies.map((drone) => (
-          <Marker
-            key={drone.id}
-            position={[drone.latitude, drone.longitude]}
-            icon={friendlyIcon(drone, selectedFriendlyId === drone.id)}
-            eventHandlers={{ click: () => onSelectFriendly(drone.id) }}
-          />
-        ))}
+        {friendlies.map((drone) => {
+          return (
+            <Marker
+              key={drone.id}
+              position={[drone.latitude, drone.longitude]}
+              icon={FriendlyDron(drone, selectedFriendlyId === drone.id)}
+              eventHandlers={{ click: () => onSelectFriendly(drone.id) }}
+            >
+              <Popup>
+                <DronePopup data={drone} />
+              </Popup>
+            </Marker>
+          );
+        })}
 
         {enemies.map((enemyDrone) => (
           <Marker
             key={enemyDrone.id}
             position={[enemyDrone.latitude, enemyDrone.longitude]}
-            icon={enemyIcon(enemyDrone, selectedEnemyId === enemyDrone.id)}
+            icon={EnemyTarget(enemyDrone, selectedEnemyId === enemyDrone.id)}
             eventHandlers={{ click: () => onSelectEnemy(enemyDrone.id) }}
           />
         ))}

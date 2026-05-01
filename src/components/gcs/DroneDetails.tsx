@@ -2,9 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Crosshair, Plane, Radio, Target, Zap } from "lucide-react";
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
-import { Gauge } from "@/components/gcs/Gauge";
 import { TelemetryChart } from "@/components/gcs/TelemetryChart";
-import { LinearGauge, RadialGauge } from "./gauges";
+import { RadialGauge } from "./gauges";
 
 interface Props {
   drone: FriendlyDrone | null;
@@ -110,9 +109,6 @@ export function DroneDetails({ drone, enemy, onAttack }: Props) {
           maximum={400}
         />
 
-        {/* <Gauge label="Altitude" value={drone.altitude} unit="M" maximum={400} /> */}
-
-        {/* <Gauge label="Speed" value={drone.speed} unit="M/S" maximum={32} /> */}
         <RadialGauge
           label="Speed"
           value={drone.speed}

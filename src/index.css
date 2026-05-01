@@ -74,12 +74,10 @@
   --popover: oklch(0.99 0 0);
   --popover-foreground: oklch(0.1 0.02 90);
 
-  /* Primary Action - High-vis safety orange-red for flight commands */
   --primary: oklch(0.58 0.2 36);
   --primary-foreground: oklch(0.99 0 0);
   --primary-glow: oklch(0.65 0.18 36);
 
-  /* Secondary - Military Slate */
   --secondary: oklch(0.88 0.02 245);
   --secondary-foreground: oklch(0.25 0.04 245);
 
@@ -92,12 +90,10 @@
   --destructive: oklch(0.55 0.22 26);
   --destructive-foreground: oklch(1 0 0);
 
-  /* Borders - Reinforced for grid-heavy layouts */
   --border: oklch(0.82 0.02 90);
   --input: oklch(0.82 0.02 90);
   --ring: oklch(0.58 0.2 36);
 
-  /* Telemetry Charts - Distinct, high-chroma colors for sensor data */
   --chart-1: oklch(0.6 0.18 200); /* Altitude */
   --chart-2: oklch(0.55 0.22 36); /* Speed */
   --chart-3: oklch(0.65 0.2 145); /* Battery */
@@ -105,7 +101,6 @@
   --chart-5: oklch(0.7 0.18 75); /* Heading */
   --radius: 0.25rem; /* Rigid, functional look */
 
-  /* Sidebar - Darker contrast for toolbars */
   --sidebar: oklch(0.92 0.02 90);
   --sidebar-foreground: oklch(0.2 0.02 90);
   --sidebar-primary: oklch(0.58 0.2 36);
@@ -115,20 +110,18 @@
   --sidebar-border: oklch(0.8 0.02 90);
   --sidebar-ring: oklch(0.58 0.2 36);
 
-  /* Status Tokens - Mission Critical */
   --surface: oklch(0.94 0.01 90);
   --surface-elevated: oklch(0.97 0.01 90);
   --surface-overlay: oklch(1 0 0);
 
-  --success: oklch(0.52 0.18 145); /* RTL / Clear to Launch */
-  --warning: oklch(0.62 0.19 75); /* Low Battery */
-  --info: oklch(0.55 0.15 225); /* GPS Lock */
+  --success: oklch(0.52 0.18 145);
+  --warning: oklch(0.62 0.19 75);
+  --info: oklch(0.55 0.15 225);
 
-  --friendly: oklch(0.55 0.15 225); /* Blue Force Tracking */
-  --hostile: oklch(0.55 0.22 26); /* Target/Danger */
+  --friendly: oklch(0.55 0.15 225);
+  --hostile: oklch(0.55 0.22 26);
   --neutral: oklch(0.45 0.02 90);
 
-  /* Effects - Hard-edged for telemetry focus */
   --grid-line: oklch(0.85 0.02 90 / 0.8);
   --shadow-elevated: 0 4px 12px -2px oklch(0.12 0.02 90 / 0.15);
   --glow-primary: 0 0 12px oklch(var(--primary) / 0.3);
@@ -266,27 +259,40 @@
 }
 
 /* Leaflet dark overrides */
-/* .leaflet-container {
-  background: var(--background);
-  font-family: inherit;
-}
-.leaflet-tile {
+.dark .leaflet-tile {
   filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9)
     saturate(0.6);
 }
+
+.leaflet-container {
+  background: var(--background) !important;
+  font-family: inherit;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  @apply !bg-card !text-card-foreground !border !border-border !rounded-md;
+}
+
+.leaflet-popup-content {
+  @apply !m-0 !w-auto;
+}
+
+.leaflet-popup-close-button {
+  @apply !text-muted-foreground hover:!text-foreground !pt-1 !pr-1;
+}
+
 .leaflet-control-zoom a {
-  background: var(--surface-elevated) !important;
-  color: var(--foreground) !important;
-  border-color: var(--border) !important;
+  @apply !bg-surface-elevated !text-foreground !border-border !border hover:!bg-accent;
 }
+
 .leaflet-control-attribution {
-  background: var(--surface) !important;
-  color: var(--muted-foreground) !important;
-  font-size: 10px !important;
+  @apply !bg-surface/60 !text-muted-foreground !text-[10px] !backdrop-blur-sm;
 }
+
 .leaflet-control-attribution a {
-  color: var(--primary) !important;
-} */
+  @apply !text-primary hover:!underline;
+}
 
 @keyframes ping-soft {
   0% {

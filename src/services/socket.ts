@@ -72,7 +72,10 @@ class GcsSocket {
   private friendlyListeners = new Set<Listener<FriendlyDrone[]>>();
   private enemyListeners = new Set<Listener<EnemyDrone[]>>();
   private tickInterval: ReturnType<typeof setInterval> | null = null;
-  private engagements = new Map<string, { targetId: string; timeToLive: number }>();
+  private engagements = new Map<
+    string,
+    { targetId: string; timeToLive: number }
+  >();
 
   connect() {
     if (this.tickInterval) return;
@@ -93,24 +96,40 @@ class GcsSocket {
 
   onFriendly(callback: Listener<FriendlyDrone[]>) {
     this.friendlyListeners.add(callback);
+
     callback(this.getFriendlySnapshot());
+
     return () => this.friendlyListeners.delete(callback);
   }
 
   onEnemy(callback: Listener<EnemyDrone[]>) {
     this.enemyListeners.add(callback);
+
     callback(this.getEnemySnapshot());
+
     return () => this.enemyListeners.delete(callback);
   }
 
   /** User-issued attack command */
   attack(friendlyId: string, enemyId: string) {
     const friendly = this.friendlies.find((drone) => drone.id === friendlyId);
+
     const enemy = this.enemies.find((drone) => drone.id === enemyId);
-    if (!friendly || !enemy || friendly.status === "lost" || friendly.status === "removed") return;
+
+    if (
+      !friendly ||
+      !enemy ||
+      friendly.status === "lost" ||
+      friendly.status === "removed"
+    ) {
+      return;
+    }
+
     friendly.status = "engaging";
     friendly.targetId = enemyId;
+
     this.engagements.set(friendlyId, { targetId: enemyId, timeToLive: 6 });
+
     this.emitFriendlyDrones();
   }
 
@@ -123,10 +142,12 @@ class GcsSocket {
 
   private emitFriendlyDrones() {
     const snapshot = this.getFriendlySnapshot();
+
     this.friendlyListeners.forEach((callback) => callback(snapshot));
   }
   private emitEnemyDrones() {
     const snapshot = this.getEnemySnapshot();
+
     this.enemyListeners.forEach((callback) => callback(snapshot));
   }
 
@@ -134,23 +155,34 @@ class GcsSocket {
     // Move friendlies
     this.friendlies.forEach((drone) => {
       if (drone.status === "lost" || drone.status === "removed") return;
+
       const heading = (drone.azimuth * Math.PI) / 180;
       const distance = (drone.speed / 111000) * 0.8;
       drone.latitude += Math.cos(heading) * distance;
       drone.longitude += Math.sin(heading) * distance;
       drone.azimuth = (drone.azimuth + getRandomNumber(-6, 6) + 360) % 360;
-      drone.altitude = Math.max(60, Math.min(400, drone.altitude + getRandomNumber(-4, 4)));
-      drone.speed = Math.max(5, Math.min(32, drone.speed + getRandomNumber(-1, 1)));
+      drone.altitude = Math.max(
+        60,
+        Math.min(400, drone.altitude + getRandomNumber(-4, 4)),
+      );
+      drone.speed = Math.max(
+        5,
+        Math.min(32, drone.speed + getRandomNumber(-1, 1)),
+      );
       if (drone.status === "active" || drone.status === "engaging") {
         drone.battery = Math.max(0, drone.battery - getRandomNumber(0.05, 0.2));
         drone.flightTime += 1;
       }
-      drone.signal = Math.max(40, Math.min(100, drone.signal + getRandomNumber(-3, 3)));
+      drone.signal = Math.max(
+        40,
+        Math.min(100, drone.signal + getRandomNumber(-3, 3)),
+      );
     });
 
     // Move enemies
     this.enemies.forEach((enemy) => {
       if (enemy.status !== "active") return;
+
       const heading = (enemy.direction * Math.PI) / 180;
       const distance = 0.00012;
       enemy.latitude += Math.cos(heading) * distance;
@@ -162,7 +194,9 @@ class GcsSocket {
     for (const [friendlyId, engagement] of this.engagements) {
       engagement.timeToLive -= 1;
       const friendly = this.friendlies.find((drone) => drone.id === friendlyId);
-      const enemy = this.enemies.find((drone) => drone.id === engagement.targetId);
+      const enemy = this.enemies.find(
+        (drone) => drone.id === engagement.targetId,
+      );
       if (!friendly || !enemy) {
         this.engagements.delete(friendlyId);
         continue;
@@ -170,7 +204,9 @@ class GcsSocket {
       // home toward target
       const deltaLongitude = enemy.longitude - friendly.longitude;
       const deltaLatitude = enemy.latitude - friendly.latitude;
-      const targetAzimuth = ((Math.atan2(deltaLongitude, deltaLatitude) * 180) / Math.PI + 360) % 360;
+      const targetAzimuth =
+        ((Math.atan2(deltaLongitude, deltaLatitude) * 180) / Math.PI + 360) %
+        360;
       friendly.azimuth = targetAzimuth;
       friendly.speed = Math.min(32, friendly.speed + 1.5);
       const closeDistance = Math.hypot(deltaLongitude, deltaLatitude);
@@ -186,7 +222,9 @@ class GcsSocket {
     }
 
     // Cull removed after a beat
-    this.friendlies = this.friendlies.filter((drone) => drone.status !== "removed");
+    this.friendlies = this.friendlies.filter(
+      (drone) => drone.status !== "removed",
+    );
     this.enemies = this.enemies.filter((enemy) => enemy.status !== "removed");
 
     // Occasionally spawn a new enemy contact
