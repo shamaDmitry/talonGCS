@@ -133,6 +133,18 @@ class GcsSocket {
     this.emitFriendlyDrones();
   }
 
+  removeDrone(id: string) {
+    this.friendlies = this.friendlies.filter((d) => d.id !== id);
+    this.emitFriendlyDrones();
+  }
+
+  respawnFleet() {
+    this.friendlies = Array.from({ length: 12 }, (_, index) =>
+      makeFriendlyDrone(index),
+    );
+    this.emitFriendlyDrones();
+  }
+
   private getFriendlySnapshot() {
     return this.friendlies.map((drone) => ({ ...drone }));
   }
@@ -172,6 +184,10 @@ class GcsSocket {
       if (drone.status === "active" || drone.status === "engaging") {
         drone.battery = Math.max(0, drone.battery - getRandomNumber(0.05, 0.2));
         drone.flightTime += 1;
+
+        if (drone.battery <= 0) {
+          drone.status = "lost";
+        }
       }
       drone.signal = Math.max(
         40,

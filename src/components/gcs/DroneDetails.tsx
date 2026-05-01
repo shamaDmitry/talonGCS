@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crosshair, Plane, Radio, Target, Zap } from "lucide-react";
+import { Crosshair, Plane, Radio, Target, Zap, Trash2 } from "lucide-react";
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
 import { TelemetryChart } from "@/components/gcs/TelemetryChart";
 import { RadialGauge } from "./gauges";
@@ -9,6 +9,7 @@ interface Props {
   drone: FriendlyDrone | null;
   enemy: EnemyDrone | null;
   onAttack: () => void;
+  onRemove: () => void;
 }
 
 function fmtTime(s: number) {
@@ -44,7 +45,7 @@ const statusBadge: Record<
   },
 };
 
-export function DroneDetails({ drone, enemy, onAttack }: Props) {
+export function DroneDetails({ drone, enemy, onAttack, onRemove }: Props) {
   if (!drone) {
     return (
       <div className="h-full grid place-items-center text-center p-6">
@@ -195,16 +196,28 @@ export function DroneDetails({ drone, enemy, onAttack }: Props) {
           </div>
         )}
 
-        <Button
-          onClick={onAttack}
-          disabled={!canAttack}
-          size="lg"
-          className="w-full bg-linear-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-mono font-bold tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Zap className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={onRemove}
+            variant="outline"
+            size="lg"
+            className="px-3 border-destructive/30 text-destructive hover:bg-destructive/10"
+            title="Remove Unit"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
 
-          {drone.status === "engaging" ? "ENGAGING…" : "ATTACK"}
-        </Button>
+          <Button
+            onClick={onAttack}
+            disabled={!canAttack}
+            size="lg"
+            className="flex-1 bg-linear-to-r from-primary to-primary-glow hover:opacity-90 text-primary-foreground font-mono font-bold tracking-widest disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Zap className="w-4 h-4" />
+
+            {drone.status === "engaging" ? "ENGAGING…" : "ATTACK"}
+          </Button>
+        </div>
       </div>
     </div>
   );

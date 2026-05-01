@@ -18,5 +18,11 @@ export function useDroneFeed() {
     };
   }, []);
 
-  return { friendlies, enemies, attack: gcsSocket.attack.bind(gcsSocket) };
+  return {
+    friendlies,
+    enemies,
+    attack: gcsSocket.attack.bind(gcsSocket),
+    removeDrone: gcsSocket.removeDrone.bind(gcsSocket),
+    respawnFleet: gcsSocket.respawnFleet.bind(gcsSocket),
+  };
 }

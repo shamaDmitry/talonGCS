@@ -3,18 +3,26 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Radar, Search, X } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Radar,
+  Search,
+  X,
+  RotateCcw,
+} from "lucide-react";
 import type { FriendlyDrone } from "@/types/drone";
 import { DroneListItem } from "@/components/gcs/DroneListItem";
 
 interface GcsSidebarProps {
   drones: FriendlyDrone[];
   selectedId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
+  onRespawn: () => void;
 }
 
 export function GcsSidebar({
@@ -25,6 +33,7 @@ export function GcsSidebar({
   onToggleCollapsed,
   mobileOpen,
   onCloseMobile,
+  onRespawn,
 }: GcsSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -112,6 +121,20 @@ export function GcsSidebar({
         )}
 
         {!collapsed && (
+          <div className="px-3 pt-3">
+            <Button
+              onClick={onRespawn}
+              variant="outline"
+              size="sm"
+              className="w-full h-8 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 font-mono text-[10px] tracking-widest uppercase"
+            >
+              <RotateCcw className="w-3 h-3 mr-2" />
+              Respawn Fleet
+            </Button>
+          </div>
+        )}
+
+        {!collapsed && (
           <div className="px-3 pt-3 pb-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -166,7 +189,9 @@ export function GcsSidebar({
                       key={drone.id}
                       drone={drone}
                       selected={selectedId === drone.id}
-                      onClick={() => onSelect(drone.id)}
+                      onClick={() =>
+                        onSelect(selectedId === drone.id ? null : drone.id)
+                      }
                     />
                   );
                 })}

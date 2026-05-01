@@ -9,7 +9,8 @@ import { TacticalMap } from "@/components/gcs/TacticalMap";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const Index = () => {
-  const { friendlies, enemies, attack } = useDroneFeed();
+  const { friendlies, enemies, attack, removeDrone, respawnFleet } =
+    useDroneFeed();
 
   const [selectedFriendlyId, setSelectedFriendlyId] = useState<string | null>(
     null,
@@ -19,28 +20,13 @@ const Index = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Auto-select first drone
-  useEffect(() => {
-    if (!selectedFriendlyId && friendlies.length > 0) {
-      const timerId = setTimeout(() => {
-        setSelectedFriendlyId(friendlies[0].id);
-      }, 0);
-
-      return () => clearTimeout(timerId);
-    }
-  }, [friendlies, selectedFriendlyId]);
-
-  // Drop selection if drone removed
+  // Clear selection if drone/enemy is removed from data
   useEffect(() => {
     if (
       selectedFriendlyId &&
       !friendlies.find((d) => d.id === selectedFriendlyId)
     ) {
-      const timerId = setTimeout(() => {
-        setSelectedFriendlyId(friendlies[0]?.id ?? null);
-      }, 0);
-
-      return () => clearTimeout(timerId);
+      setSelectedFriendlyId(null);
     }
   }, [friendlies, selectedFriendlyId]);
 
@@ -49,11 +35,7 @@ const Index = () => {
       selectedEnemyId &&
       !enemies.find((enemy) => enemy.id === selectedEnemyId)
     ) {
-      const timerId = setTimeout(() => {
-        setSelectedEnemyId(null);
-      }, 0);
-
-      return () => clearTimeout(timerId);
+      setSelectedEnemyId(null);
     }
   }, [enemies, selectedEnemyId]);
 
@@ -77,6 +59,23 @@ const Index = () => {
     });
   };
 
+  const handleRemoveDrone = (id: string) => {
+    removeDrone(id);
+    if (selectedFriendlyId === id) {
+      setSelectedFriendlyId(null);
+    }
+    toast.info("Drone removed", {
+      description: "Unit decommissioned from active fleet.",
+    });
+  };
+
+  const handleRespawn = () => {
+    respawnFleet();
+    toast.success("Fleet respawned", {
+      description: "All drone systems re-initialized.",
+    });
+  };
+
   return (
     <div className="h-screen w-full flex bg-background text-foreground overflow-hidden">
       <GcsSidebar
@@ -92,6 +91,7 @@ const Index = () => {
         }
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
+        onRespawn={handleRespawn}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -147,6 +147,9 @@ const Index = () => {
               drone={selectedFriendly}
               enemy={selectedEnemy}
               onAttack={handleAttack}
+              onRemove={() =>
+                selectedFriendly && handleRemoveDrone(selectedFriendly.id)
+              }
             />
           </aside>
         </main>

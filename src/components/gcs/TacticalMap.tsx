@@ -6,6 +6,7 @@ import {
   Polyline,
   useMap,
   Popup,
+  useMapEvents,
 } from "react-leaflet";
 
 import type { EnemyDrone, FriendlyDrone } from "@/types/drone";
@@ -19,8 +20,8 @@ interface TacticalMapProps {
   enemies: EnemyDrone[];
   selectedFriendlyId: string | null;
   selectedEnemyId: string | null;
-  onSelectFriendly: (id: string) => void;
-  onSelectEnemy: (id: string) => void;
+  onSelectFriendly: (id: string | null) => void;
+  onSelectEnemy: (id: string | null) => void;
 }
 
 function FlyToSelection({
@@ -58,6 +59,13 @@ function PopupManager({ friendlies }: { friendlies: FriendlyDrone[] }) {
     }
   }, [engagingCount, map]);
 
+  return null;
+}
+
+function MapEvents({ onClick }: { onClick: () => void }) {
+  useMapEvents({
+    click: () => onClick(),
+  });
   return null;
 }
 
@@ -105,10 +113,14 @@ export function TacticalMap({
         className="w-full h-full"
         style={{ background: "hsl(var(--background))" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MapEvents
+          onClick={() => {
+            onSelectFriendly(null);
+            onSelectEnemy(null);
+          }}
         />
+
         <FlyToSelection
           id={selectedFriendlyId}
           getPos={() =>
@@ -125,7 +137,12 @@ export function TacticalMap({
               key={drone.id}
               position={[drone.latitude, drone.longitude]}
               icon={FriendlyDron(drone, selectedFriendlyId === drone.id)}
-              eventHandlers={{ click: () => onSelectFriendly(drone.id) }}
+              eventHandlers={{
+                click: () =>
+                  onSelectFriendly(
+                    selectedFriendlyId === drone.id ? null : drone.id,
+                  ),
+              }}
             >
               <Popup>
                 <DronePopup data={drone} />
@@ -139,7 +156,12 @@ export function TacticalMap({
             key={enemyDrone.id}
             position={[enemyDrone.latitude, enemyDrone.longitude]}
             icon={EnemyTarget(enemyDrone, selectedEnemyId === enemyDrone.id)}
-            eventHandlers={{ click: () => onSelectEnemy(enemyDrone.id) }}
+            eventHandlers={{
+              click: () =>
+                onSelectEnemy(
+                  selectedEnemyId === enemyDrone.id ? null : enemyDrone.id,
+                ),
+            }}
           />
         ))}
 

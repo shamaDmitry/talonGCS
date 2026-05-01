@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { FriendlyDrone } from "@/types/drone";
 import {
-  Battery,
+  BatteryFull,
   BatteryLow,
   BatteryMedium,
   BatteryWarning,
@@ -19,6 +19,8 @@ interface DroneListItemProps {
 function BatteryIcon({ value }: { value: number }) {
   const baseClass = "w-3.5 h-3.5";
 
+  console.log("value", value);
+
   if (value < 15) {
     return <BatteryWarning className={cn(baseClass, "text-destructive")} />;
   }
@@ -28,10 +30,10 @@ function BatteryIcon({ value }: { value: number }) {
   }
 
   if (value < 70) {
-    return <BatteryMedium className={cn(baseClass, "text-foreground")} />;
+    return <BatteryMedium className={cn(baseClass, "text-chart-1")} />;
   }
 
-  return <Battery className={cn(baseClass, "text-success")} />;
+  return <BatteryFull className={cn(baseClass, "text-success")} />;
 }
 
 const statusDot: Record<FriendlyDrone["status"], string> = {

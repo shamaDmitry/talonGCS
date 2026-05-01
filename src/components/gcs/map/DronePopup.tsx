@@ -1,14 +1,7 @@
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FriendlyDrone } from "@/types/drone";
-import {
-  Badge,
-  Box,
-  Crosshair,
-  Gauge,
-  Navigation,
-  Radio,
-  Zap,
-} from "lucide-react";
+import { Box, Crosshair, Gauge, Navigation, Radio, Zap } from "lucide-react";
 
 const DronePopup = ({ data }: { data: FriendlyDrone }) => {
   const statusConfig = {
